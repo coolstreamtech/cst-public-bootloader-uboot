@@ -297,6 +297,10 @@ void	pciinfo	      (int, int);
 int	misc_init_f   (void);
 int	misc_init_r   (void);
 
+#ifdef CONFIG_MISC_INIT_P
+int     misc_init_p   (void);
+#endif
+
 /* common/exports.c */
 void	jumptable_init(void);
 

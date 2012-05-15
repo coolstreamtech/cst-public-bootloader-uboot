@@ -205,10 +205,17 @@ struct tag_memclk {
 	u32 fmemclk;
 };
 
+#define ATAG_MAC       0x5441000A
+
+struct tag_mac {
+        u8 mac_address[6];
+};
+
 struct tag {
 	struct tag_header hdr;
 	union {
 		struct tag_core		core;
+		struct tag_mac          mac;
 		struct tag_mem32	mem;
 		struct tag_videotext	videotext;
 		struct tag_ramdisk	ramdisk;

@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2000-2007
+# (C) Copyright 2000-2006
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,41 +23,25 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	:= $(obj)libusb.a
+LIB	= $(obj)lib$(BOARD).a
 
-# core
-COBJS-y += usbdcore.o
-COBJS-$(CONFIG_USB_OHCI_NEW) += usb_ohci.o
-COBJS-$(CONFIG_USB_EHCI) += usb_ehci_core.o
+COBJS	:= coolstream_hdx.o interrupt.o flash.o gpio.o display.o network.o splash.o
+SOBJS	:= lowlevel_init.o
 
-# host
-COBJS-$(CONFIG_USB_ISP116X_HCD) += isp116x-hcd.o
-COBJS-$(CONFIG_USB_R8A66597_HCD) += r8a66597-hcd.o
-COBJS-$(CONFIG_USB_SL811HS) += sl811_usb.o
-COBJS-$(CONFIG_USB_EHCI_FSL) += usb_ehci_fsl.o
-COBJS-$(CONFIG_USB_EHCI_PCI) += usb_ehci_pci.o
-COBJS-$(CONFIG_USB_EHCI_IXP4XX) += usb_ehci_ixp.o
-COBJS-$(CONFIG_MUSB_HCD) += musb_hcd.o musb_core.o
-COBJS-$(CONFIG_USB_DAVINCI) += davinci_usb.o
-COBJS-$(CONFIG_USB_EHCI_VCT) += usb_ehci_vct.o
-COBJS-$(CONFIG_USB_EHCI_CX2450X) += usb_ehci_cx2450x.o
-
-# device
-ifdef CONFIG_USB_DEVICE
-COBJS-y += usbdcore_ep0.o
-COBJS-$(CONFIG_OMAP1510) += usbdcore_omap1510.o
-COBJS-$(CONFIG_OMAP1610) += usbdcore_omap1510.o
-COBJS-$(CONFIG_MPC885_FAMILY) += usbdcore_mpc8xx.o
-endif
-
-COBJS	:= $(COBJS-y)
-SRCS	:= $(COBJS:.o=.c)
+SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
+SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
-all:	$(LIB)
+#make sure lowlevel is seen first ;)
 
-$(LIB):	$(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+$(LIB):	$(obj).depend  $(SOBJS) $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(SOBJS) $(OBJS) 
+
+clean:
+	rm -f $(SOBJS) $(OBJS)
+
+distclean:	clean
+	rm -f $(LIB) core *.bak .depend
 
 #########################################################################
 

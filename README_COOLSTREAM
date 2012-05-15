@@ -1,0 +1,32 @@
+This is the coolstream branch of u-boot. It contains all parts to build
+a working bootlaoder. This branch does not contain all the configurations
+for other boards and enviroments.
+
+
+A T T E N T I O N:
+==================
+
+Coolstream Intl. Ltd. will not be responsible for broken Set-Top-Boxes
+caused by your own work. If will not be able to restore your box into
+operational mode if something fail while replacing the bootloader. If
+your box is dead you have to give it to your dealer for repair, which
+will cause service fees, so be carefull! Your work is on your own risk!
+
+
+Notes about to build u-boot for Coolstream HDx Set-Top-Boxes:
+-------------------------------------------------------------
+
+- Make sure you have the ccross compiler installed properly on your system
+
+- Configure the build process for HDx boards by calling:
+
+  make coolstream_hdx_config
+
+- Build u-boot by calling:
+
+  make
+
+  The resulting executable binary will be u-boot.bin. The build process
+  also creates the mkimage tool in the tools directory, which is necessary
+  to convert Linux kernel binaries into u-boot compatible binaries.
+

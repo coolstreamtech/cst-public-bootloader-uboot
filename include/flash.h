@@ -30,32 +30,45 @@
  */
 
 typedef struct {
-	ulong	size;			/* total bank size in bytes		*/
-	ushort	sector_count;		/* number of erase units		*/
-	ulong	flash_id;		/* combined device & manufacturer code	*/
-	ulong	start[CONFIG_SYS_MAX_FLASH_SECT];   /* virtual sector start address */
-	uchar	protect[CONFIG_SYS_MAX_FLASH_SECT]; /* sector protection status	*/
+	ulong   size;                   /* total bank size in bytes               	 */
+	ushort  sector_count;           /* number of erase units                  	 */
+	ulong   flash_id;               /* combined device & manufacturer code    	 */
+	ulong   start[CONFIG_SYS_MAX_FLASH_SECT];   /* physical sector start addresses   */
+	uchar   protect[CONFIG_SYS_MAX_FLASH_SECT]; /* sector protection status          */
 #ifdef CONFIG_SYS_FLASH_CFI
-	uchar	portwidth;		/* the width of the port		*/
-	uchar	chipwidth;		/* the width of the chip		*/
-	ushort	buffer_size;		/* # of bytes in write buffer		*/
-	ulong	erase_blk_tout;		/* maximum block erase timeout		*/
-	ulong	write_tout;		/* maximum write timeout		*/
-	ulong	buffer_write_tout;	/* maximum buffer write timeout		*/
-	ushort	vendor;			/* the primary vendor id		*/
-	ushort	cmd_reset;		/* vendor specific reset command	*/
-	ushort	interface;		/* used for x8/x16 adjustments		*/
-	ushort	legacy_unlock;		/* support Intel legacy (un)locking	*/
-	uchar	manufacturer_id;	/* manufacturer id			*/
-	ushort	device_id;		/* device id				*/
-	ushort	device_id2;		/* extended device id			*/
-	ushort	ext_addr;		/* extended query table address		*/
-	ushort	cfi_version;		/* cfi version				*/
-	ushort	cfi_offset;		/* offset for cfi query			*/
-	ulong   addr_unlock1;		/* unlock address 1 for AMD flash roms  */
-	ulong   addr_unlock2;		/* unlock address 2 for AMD flash roms  */
-	const char *name;		/* human-readable name	                */
+	uchar	portwidth;		/* the width of the port			 */
+	uchar	chipwidth;		/* the width of the chip			 */
+	ushort	buffer_size;		/* # of bytes in write buffer			 */
+	ulong	erase_blk_tout;		/* maximum block erase timeout			 */
+	ulong	write_tout;		/* maximum write timeout			 */
+	ulong	buffer_write_tout;	/* maximum buffer write timeout			 */
+	ushort	vendor;			/* the primary vendor id			 */
+	ushort	cmd_reset;		/* vendor specific reset command		 */
+	ushort	interface;		/* used for x8/x16 adjustments			 */
+	ushort	legacy_unlock;		/* support Intel legacy (un)locking		 */
+	uchar	manufacturer_id;	/* manufacturer id				 */
+	ushort	device_id;		/* device id					 */
+	ushort	device_id2;		/* extended device id				 */
+	ushort	ext_addr;		/* extended query table address			 */
+	ushort	cfi_version;		/* cfi version					 */
+	ushort	cfi_offset;		/* offset for cfi query				 */
+	ulong   addr_unlock1;		/* unlock address 1 for AMD flash roms  	 */
+	ulong   addr_unlock2;		/* unlock address 2 for AMD flash roms  	 */
+	const char *name;		/* human-readable name	                	 */
 #endif
+#ifdef CFG_EXT_LEGACY_FLASH
+	/* newer flashes have multiple ID's... manufactor, device group, deivce id, ...  */
+#ifndef CFG_FLASH_CFI
+	const char *name;               /* human-readable name                    	 */
+	ushort  manufacturer_id;        /* manufacturer id                        	 */
+	ushort  device_id;              /* device id                              	 */
+	ushort  device_id2;             /* extended device id 1                   	 */
+	char    serial[8];              /* serial number, if available            	 */
+#endif
+	ushort  device_id3;             /* extended device id 2                   	 */
+	ulong   sector_size;            /* makes life easier for uniform sector   	 */
+	ulong   bank_number;            /* makes life easier for more than 1 bank 	 */
+#endif /* CFG_EXT_LEGACY_FLASH */
 } flash_info_t;
 
 typedef unsigned long flash_sect_t;
@@ -124,9 +137,6 @@ extern int jedec_flash_match(flash_info_t *info, ulong base);
 #define CFI_CMDSET_AMD_LEGACY		0xFFF0
 #endif
 
-#if defined(CONFIG_SYS_FLASH_CFI)
-extern flash_info_t *flash_get_info(ulong base);
-#endif
 
 /*-----------------------------------------------------------------------
  * return codes from flash_write():

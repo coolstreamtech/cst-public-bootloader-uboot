@@ -148,6 +148,20 @@
 #define USB_REQ_SET_INTERFACE       0x0B
 #define USB_REQ_SYNCH_FRAME         0x0C
 
+#define USB_REQ_SET_ENCRYPTION      0x0D    /* Wireless USB */
+#define USB_REQ_GET_ENCRYPTION      0x0E
+#define USB_REQ_RPIPE_ABORT         0x0E
+#define USB_REQ_SET_HANDSHAKE       0x0F
+#define USB_REQ_RPIPE_RESET         0x0F
+#define USB_REQ_GET_HANDSHAKE       0x10
+#define USB_REQ_SET_CONNECTION      0x11
+#define USB_REQ_SET_SECURITY_DATA   0x12
+#define USB_REQ_GET_SECURITY_DATA   0x13
+#define USB_REQ_SET_WUSB_DATA       0x14
+#define USB_REQ_LOOPBACK_DATA_WRITE 0x15
+#define USB_REQ_LOOPBACK_DATA_READ  0x16
+#define USB_REQ_SET_INTERFACE_DS    0x17
+
 /* HID requests */
 #define USB_REQ_GET_REPORT          0x01
 #define USB_REQ_GET_IDLE            0x02
