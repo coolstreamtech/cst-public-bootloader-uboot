@@ -674,6 +674,135 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 }
 
 #ifdef CONFIG_USB_STORAGE
+extern int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_fat_fsload (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_mem_cp (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern void display_set_text(char *text);
+#if 0
+		kernel 0xF0080000 - 0xF0480000 size 0x00400000
+			system 0xF0480000 - 0xF2000000 size 0x01B80000
+#endif
+//#define TEST_ONLY
+int do_usbup(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	int i, n = 0;
+	extern char usb_started;
+	long size;
+	char *s;
+	char *istr[] = { "coolstream/kernel.img", "coolstream/system.img" };
+	char *iaddr[] = { "0xF0080000", "0xF0480000" };
+	char *isize[] = { "+0x400000", "+0x01B80000" };
+	char *uargv[] = { "usbup", "usb", "00", "0x0E000000", 0};
+	char *pargv[] = { "protect", "off", 0, 0 };
+	char *eargv[] = { "erase", 0, 0 };
+	char *cargv[] = { "cp.b", "0x0E000000", 0, "0xFFFFFFFF" };
+
+	cmd_tbl_t *bcmd;
+
+	usb_stor_curr_dev = -1;
+
+	usb_stop();
+	printf("(Re)start USB...\n");
+
+	display_set_text("USB update");
+	i = usb_init();
+
+	if (i >= 0)
+		usb_stor_curr_dev = usb_stor_scan(1);
+
+	if(usb_stor_curr_dev < 0) {
+		printf("No usb-storage device found..\n");
+		display_set_text("No USB dev");
+		goto _return;
+	}
+	sprintf(uargv[1], "%d", usb_stor_curr_dev);
+
+	while(n < 2) {
+		uargv[4] = istr[n];
+
+		pargv[2] = iaddr[n];
+		pargv[3] = isize[n];
+
+		eargv[1] = iaddr[n];
+		eargv[2] = isize[n];
+
+		cargv[2] = iaddr[n];
+
+		bcmd = find_cmd("fatload");
+
+		if (!bcmd) {
+			printf("** 'fatload' command not present. **\n");
+			goto _return;
+		}
+		display_set_text(&istr[n][11]);
+		i = do_fat_fsload(bcmd, 0, 5, uargv);
+		if(i) {
+			printf("** Unable to read %s **\n", istr[n]);
+			/* goto _return;*/
+			n++;
+			continue;
+		}
+		s = getenv("filesize");
+		if(s == NULL) {
+			printf("** Unable to get file size **\n");
+			goto _return;
+		}
+		size = simple_strtoul(s, NULL, 16);
+		printf("%s size %x\n", istr[n], (int) size);
+
+		bcmd = find_cmd("protect");
+		if (!bcmd) {
+			printf("** 'protect' command not present. **\n");
+			goto _return;
+		}
+
+		printf("Unprotecting %s %s\n", pargv[2], pargv[3]);
+#ifndef TEST_ONLY
+		i = do_protect(bcmd, 0, 4, pargv);
+		if(i) {
+			printf("** 'protect' command failed **\n");
+			goto _return;
+		}
+#endif
+		bcmd = find_cmd("erase");
+		if (!bcmd) {
+			printf("** 'erase' command not present. **\n");
+			goto _return;
+		}
+		printf("Erasing %s %s\n", eargv[1], eargv[2]);
+#ifndef TEST_ONLY
+		i = do_flerase(bcmd, 0, 3, eargv);
+		if(i) {
+			printf("** 'erase' command failed **\n");
+			goto _return;
+		}
+#endif
+		bcmd = find_cmd("cp");
+		if (!bcmd) {
+			printf("** 'cp' command not present. **\n");
+			goto _return;
+		}
+		sprintf(cargv[3], "0x%x", (int) size);
+		printf("Coping to %s size %s\n", cargv[2], cargv[3]);
+#ifndef TEST_ONLY
+		i = do_mem_cp(bcmd, 0, 4, cargv);
+		if(i) {
+			printf("** 'cp' command failed **\n");
+			goto _return;
+		}
+#endif
+		n++;
+	}
+	display_set_text("Reboot");
+	udelay(2000000);
+	do_reset (NULL, 0, 0, NULL);
+_return:
+	usb_stop();
+	return 0;
+}
+
 U_BOOT_CMD(
 	usb,	5,	1,	do_usb,
 	"USB sub-system",
@@ -696,6 +825,11 @@ U_BOOT_CMD(
 	"loadAddr dev:part\n"
 );
 
+U_BOOT_CMD(
+	usbup,	3,	1,	do_usbup,
+	"upgrade from USB device",
+	"usb upgrade - flash kernel/system from usb stick\n"
+);
 #else
 U_BOOT_CMD(
 	usb,	5,	1,	do_usb,

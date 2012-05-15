@@ -255,7 +255,11 @@ void env_relocate (void)
 #if defined(CONFIG_GTH)	|| defined(CONFIG_ENV_IS_NOWHERE)	/* Environment not changable */
 		puts ("Using default environment\n\n");
 #else
-		puts ("*** Warning - bad CRC, using default environment\n\n");
+#ifdef BEAUTIFY_CONSOLE
+                printf("\xBA *** Warning - bad CRC, using default environment %-27s \xBA\n", "***");
+#else
+                puts ("*** Warning - bad CRC, using default environment\n\n");
+#endif
 		show_boot_progress (-60);
 #endif
 		set_default_env();

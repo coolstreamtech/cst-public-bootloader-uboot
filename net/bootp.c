@@ -28,6 +28,9 @@
 #ifdef CONFIG_STATUS_LED
 #include <status_led.h>
 #endif
+#ifdef HAVE_COOLSTREAM_VFD_CONTROLLER
+#include <asm/arch/sys_proto.h>
+#endif
 
 #define BOOTP_VENDOR_MAGIC	0x63825363	/* RFC1048 Magic Cookie		*/
 
@@ -649,7 +652,9 @@ BootpRequest (void)
 		udelay(1000); /*Wait 1ms*/
 	}
 #endif	/* CONFIG_BOOTP_RANDOM_DELAY */
-
+#ifdef HAVE_COOLSTREAM_VFD_CONTROLLER
+	display_set_text("BOOTP...    ");
+#endif
 	printf("BOOTP broadcast %d\n", ++BootpTry);
 	pkt = NetTxPacket;
 	memset ((void*)pkt, 0, PKTSIZE);

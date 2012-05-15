@@ -150,9 +150,15 @@ else
 ifeq ($(ARCH),ppc)
 CROSS_COMPILE = ppc_8xx-
 endif
+
 ifeq ($(ARCH),arm)
+ifeq ($(BOARD),coolstream_hdx)
+CROSS_COMPILE = arm-cx2450x-linux-gnueabi-
+else
 CROSS_COMPILE = arm-linux-
 endif
+endif
+
 ifeq ($(ARCH),i386)
 CROSS_COMPILE = i386-linux-
 endif
@@ -3052,6 +3058,9 @@ qong_config		: unconfig
 #########################################################################
 ## ARM1176 Systems
 #########################################################################
+coolstream_hdx_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm1176 coolstream_hdx NULL nevis
+
 smdk6400_noUSB_config	\
 smdk6400_config	:	unconfig
 	@mkdir -p $(obj)include $(obj)board/samsung/smdk6400

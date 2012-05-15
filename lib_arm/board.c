@@ -123,19 +123,33 @@ void *sbrk (ptrdiff_t increment)
  * May be supplied by boards if desired
  */
 void inline __coloured_LED_init (void) {}
-void inline coloured_LED_init (void) __attribute__((weak, alias("__coloured_LED_init")));
+void coloured_LED_init (void) __attribute__((weak, alias("__coloured_LED_init")));
 void inline __red_LED_on (void) {}
-void inline red_LED_on (void) __attribute__((weak, alias("__red_LED_on")));
+void red_LED_on (void) __attribute__((weak, alias("__red_LED_on")));
 void inline __red_LED_off(void) {}
-void inline red_LED_off(void)	     __attribute__((weak, alias("__red_LED_off")));
+void red_LED_off(void)	     __attribute__((weak, alias("__red_LED_off")));
 void inline __green_LED_on(void) {}
-void inline green_LED_on(void) __attribute__((weak, alias("__green_LED_on")));
+void green_LED_on(void) __attribute__((weak, alias("__green_LED_on")));
 void inline __green_LED_off(void) {}
-void inline green_LED_off(void)__attribute__((weak, alias("__green_LED_off")));
+void green_LED_off(void)__attribute__((weak, alias("__green_LED_off")));
 void inline __yellow_LED_on(void) {}
-void inline yellow_LED_on(void)__attribute__((weak, alias("__yellow_LED_on")));
+void yellow_LED_on(void)__attribute__((weak, alias("__yellow_LED_on")));
 void inline __yellow_LED_off(void) {}
-void inline yellow_LED_off(void)__attribute__((weak, alias("__yellow_LED_off")));
+void yellow_LED_off(void)__attribute__((weak, alias("__yellow_LED_off")));
+
+#ifdef BEAUTIFY_CONSOLE
+static const char *hline =     {"\xCC\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                               "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xB9\n"};
+
+static const char *dbtmline =  {"\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                               "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                               "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                               "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\n"};
+
+#endif
+
 
 /************************************************************************
  * Init Utilities							*
@@ -161,15 +175,22 @@ static int init_baudrate (void)
 
 static int display_banner (void)
 {
-	printf ("\n\n%s\n\n", version_string);
-	debug ("U-Boot code: %08lX -> %08lX  BSS: -> %08lX\n",
-	       _armboot_start, _bss_start, _bss_end);
+#ifdef BEAUTIFY_CONSOLE
+#ifndef PRODUCT_NAME
+#error PRODUCT_NAME not defined
+#endif
+        printf("\xBA %-51s %-24s \xBA\n%s", version_string, PRODUCT_NAME, hline);
+#else
+        printf ("\n\n%s\n\n", version_string);
+#endif
+        debug ("U-Boot code: %08lX -> %08lX  BSS: -> %08lX\n",
+               _armboot_start, _bss_start, _bss_end);
 #ifdef CONFIG_MODEM_SUPPORT
-	debug ("Modem Support enabled\n");
+        debug ("Modem Support enabled\n");
 #endif
 #ifdef CONFIG_USE_IRQ
-	debug ("IRQ Stack: %08lx\n", IRQ_STACK_START);
-	debug ("FIQ Stack: %08lx\n", FIQ_STACK_START);
+        debug ("IRQ Stack: %08lx\n", IRQ_STACK_START);
+        debug ("FIQ Stack: %08lx\n", FIQ_STACK_START);
 #endif
 
 	return (0);
@@ -185,6 +206,21 @@ static int display_banner (void)
 static int display_dram_config (void)
 {
 	int i;
+
+#ifdef BEAUTIFY_CONSOLE
+        printf("\xBA Memory configuration                                                         \xBA\n");
+        printf("\xBA Start    \xB3 End      \xB3 Type  \xB3 Description                                    \xBA\n");
+        printf("\xBA\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC5" \
+               "\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC5" \
+               "\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC5"
+               "\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xBA\n");
+
+        for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
+        {
+            printf("\xBA %.8lX \xB3 %.8lX \xB3 RAM   \xB3 ", gd->bd->bi_dram[i].start, gd->bd->bi_dram[i].start + gd->bd->bi_dram[i].size - 1);
+            printf("System main memory bank #%.1d                     \xBA\n", i);
+        }
+#else
 
 #ifdef DEBUG
 	puts ("RAM Configuration:\n");
@@ -202,15 +238,19 @@ static int display_dram_config (void)
 	puts("DRAM:  ");
 	print_size(size, "\n");
 #endif
-
+#endif
 	return (0);
 }
 
 #ifndef CONFIG_SYS_NO_FLASH
 static void display_flash_config (ulong size)
 {
+#if defined (BEAUTIFY_CONSOLE) && (CFG_EXT_LEGACY_FLASH)
+	/* because the flash_info is not exported, this output is done by flash_detect directly */
+#else
 	puts ("Flash: ");
 	print_size (size, "\n");
+#endif
 }
 #endif /* CONFIG_SYS_NO_FLASH */
 
@@ -407,6 +447,15 @@ void start_armboot (void)
 #endif
 	}
 
+#if defined(CONFIG_MISC_INIT_P)
+        /* miscellaneous platform dependent initialisations before devices_init(),
+           but after the enviroment is available. */
+#ifdef BEAUTIFY_CONSOLE
+        printf("%s", hline);
+#endif
+        misc_init_p ();
+#endif
+
 	devices_init ();	/* get the devices list going. */
 
 #ifdef CONFIG_CMC_PU2
@@ -470,6 +519,10 @@ extern void davinci_eth_set_mac_addr (const u_int8_t *addr);
 	debug ("Reset Ethernet PHY\n");
 	reset_phy();
 #endif
+#endif
+
+#ifdef BEAUTIFY_CONSOLE
+        printf("%s", dbtmline);
 #endif
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {

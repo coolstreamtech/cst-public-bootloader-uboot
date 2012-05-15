@@ -696,6 +696,75 @@ int flash_sect_protect (int p, ulong addr_first, ulong addr_last)
 }
 #endif /* CONFIG_SYS_NO_FLASH */
 
+#ifdef CONFIG_SYS_FLASH_OTP
+#include <asm/arch/sys_proto.h>
+
+int do_otpdump(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+    return flash_dump_otp(&flash_info[0]);
+}
+
+int do_otpwrite(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+    uchar buffer[256];
+    ulong inpos = 0;
+    ulong outpos = 0;
+    ulong len = strlen(argv[1]);
+
+    if ((len < 2) || (len % 2))
+    {
+	printf("\nError: Invalid OTP data\n\n");
+	return 1;
+    }
+    if (len > 512)
+	len = 512;
+
+    memset(buffer, 0, 256);
+
+    while (inpos < len)
+    {
+	switch (argv[1][inpos])
+	{
+	    case 0x30 ... 0x39:	/* digit 0 ... 9 */
+		buffer[outpos] = (argv[1][inpos] - 0x30) << 4;
+		break;
+	    case 0x41 ... 0x46:	/* digit A ... F */
+		buffer[outpos] = (argv[1][inpos] - 0x37) << 4;
+		break;
+	    case 0x61 ... 0x66:	/* digit a ... f */
+		buffer[outpos] = (argv[1][inpos] - 0x57) << 4;
+		break;
+	    default:
+		puts("\nError: Invalid OTP data\n\n");
+		return 1;
+	}
+
+	inpos++;
+
+	switch (argv[1][inpos])
+	{
+	    case 0x30 ... 0x39:	/* digit 0 ... 9 */
+		buffer[outpos] |= (argv[1][inpos] - 0x30);
+		break;
+	    case 0x41 ... 0x46:	/* digit A ... F */
+		buffer[outpos] |= (argv[1][inpos] - 0x37);
+		break;
+	    case 0x61 ... 0x66:	/* digit a ... f */
+		buffer[outpos] |= (argv[1][inpos] - 0x57);
+		break;
+	    default:
+		puts("\nError: Invalid OTP data\n\n");
+		return 1;
+	}
+
+	inpos++;
+	outpos++;
+    }
+
+    return flash_write_otp(&flash_info[0], buffer, len / 2);
+}
+
+#endif /* CONFIG_SYS_FLASH_OTP */
 
 /**************************************************/
 #if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_JFFS2_CMDLINE)
@@ -753,6 +822,22 @@ U_BOOT_CMD(
 	TMP_PROT_OFF
 	"protect off all\n    - make all FLASH banks writable\n"
 );
+
+#ifdef CONFIG_SYS_FLASH_OTP
+
+U_BOOT_CMD(
+	otpdump, 1, 1, do_otpdump,
+	"dump the content of the flash's OTP-sector",
+	"\n    - dump the content of the flash's OTP-sector\n"
+);
+
+U_BOOT_CMD(
+	otpwrite, 2, 1, do_otpwrite,
+	"write data into the flash's OTP-sector (factory only).",
+	"\n    - write data into the flash's OTP-sector (factory only).\n"
+);
+
+#endif /* CONFIG_SYS_FLASH_OTP */
 
 #undef	TMP_ERASE
 #undef	TMP_PROT_ON

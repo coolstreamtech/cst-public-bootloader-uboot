@@ -58,6 +58,10 @@
 #include <lzma/LzmaTools.h>
 #endif /* CONFIG_LZMA */
 
+#ifdef HAVE_COOLSTREAM_VFD_CONTROLLER
+#include <asm/arch/sys_proto.h>
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 extern int gunzip (void *dst, int dstlen, unsigned char *src, unsigned long *lenp);
@@ -802,6 +806,9 @@ static void *boot_get_kernel (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]
 	*os_data = *os_len = 0;
 	switch (genimg_get_format ((void *)img_addr)) {
 	case IMAGE_FORMAT_LEGACY:
+                #ifdef HAVE_COOLSTREAM_VFD_CONTROLLER
+                display_set_text("BOOT KERNEL ");
+                #endif
 		printf ("## Booting kernel from Legacy Image at %08lx ...\n",
 				img_addr);
 		hdr = image_get_kernel (img_addr, images->verify);
@@ -838,6 +845,9 @@ static void *boot_get_kernel (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]
 		break;
 #if defined(CONFIG_FIT)
 	case IMAGE_FORMAT_FIT:
+                #ifdef HAVE_COOLSTREAM_VFD_CONTROLLER
+                display_set_text("BOOT KERNEL ");
+                #endif
 		fit_hdr = (void *)img_addr;
 		printf ("## Booting kernel from FIT Image at %08lx ...\n",
 				img_addr);

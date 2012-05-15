@@ -48,7 +48,7 @@ DECLARE_GLOBAL_DATA_PTR;
  * Board-specific Platform code can reimplement show_boot_progress () if needed
  */
 void inline __show_boot_progress (int val) {}
-void inline show_boot_progress (int val) __attribute__((weak, alias("__show_boot_progress")));
+void show_boot_progress (int val) __attribute__((weak, alias("__show_boot_progress")));
 
 #if defined(CONFIG_BOOT_RETRY_TIME) && defined(CONFIG_RESET_TO_RETRY)
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);		/* for do_reset() prototype */
@@ -210,7 +210,7 @@ static __inline__ int abortboot(int bootdelay)
 #ifdef CONFIG_MENUKEY
 static int menukey = 0;
 #endif
-
+extern int cs_fp_key;
 static __inline__ int abortboot(int bootdelay)
 {
 	int abort = 0;
@@ -227,6 +227,8 @@ static __inline__ int abortboot(int bootdelay)
 	 * Don't check if bootdelay < 0
 	 */
 	if (bootdelay >= 0) {
+		if(cs_fp_key)
+			return 1;
 		if (tstc()) {	/* we got a key press	*/
 			(void) getc();  /* consume input	*/
 			puts ("\b\b\b 0");
@@ -241,6 +243,9 @@ static __inline__ int abortboot(int bootdelay)
 		--bootdelay;
 		/* delay 100 * 10ms */
 		for (i=0; !abort && i<100; ++i) {
+			if(cs_fp_key)
+				return 1;
+
 			if (tstc()) {	/* we got a key press	*/
 				abort  = 1;	/* don't auto boot	*/
 				bootdelay = 0;	/* no more delay	*/
@@ -270,7 +275,7 @@ static __inline__ int abortboot(int bootdelay)
 #endif	/* CONFIG_BOOTDELAY >= 0  */
 
 /****************************************************************************/
-
+extern void display_set_text(char *text);
 void main_loop (void)
 {
 #ifndef CONFIG_SYS_HUSH_PARSER
@@ -397,6 +402,7 @@ void main_loop (void)
 
 	debug ("### main_loop: bootcmd=\"%s\"\n", s ? s : "<UNDEFINED>");
 
+	display_set_text("Coolstream");
 	if (bootdelay >= 0 && s && !abortboot (bootdelay)) {
 # ifdef CONFIG_AUTOBOOT_KEYED
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
@@ -412,6 +418,16 @@ void main_loop (void)
 # ifdef CONFIG_AUTOBOOT_KEYED
 		disable_ctrlc(prev);	/* restore Control C checking */
 # endif
+	}
+	if(cs_fp_key) {
+		cmd_tbl_t *cmdtp;
+		cmdtp = find_cmd("usbup");
+		if(cmdtp) {
+			printf("\nEmergency update from usb\n");
+			udelay (500000);
+			cmdtp->cmd(cmdtp, 0, 0, NULL);
+		}
+		display_set_text("Update fail");
 	}
 
 # ifdef CONFIG_MENUKEY

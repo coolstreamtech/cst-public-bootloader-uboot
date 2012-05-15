@@ -35,13 +35,19 @@ DECLARE_GLOBAL_DATA_PTR;
     defined (CONFIG_SERIAL_TAG) || \
     defined (CONFIG_REVISION_TAG) || \
     defined (CONFIG_VFD) || \
-    defined (CONFIG_LCD)
+    defined (CONFIG_LCD) || \
+    defined (CONFIG_MAC_TAG)
+
 static void setup_start_tag (bd_t *bd);
 
 # ifdef CONFIG_SETUP_MEMORY_TAGS
 static void setup_memory_tags (bd_t *bd);
 # endif
 static void setup_commandline_tag (bd_t *bd, char *commandline);
+
+#ifdef CONFIG_MAC_TAG
+static void setup_mac_tag (bd_t *bd);
+#endif
 
 # ifdef CONFIG_INITRD_TAG
 static void setup_initrd_tag (bd_t *bd, ulong initrd_start,
@@ -89,7 +95,8 @@ int do_bootm_linux(int flag, int argc, char *argv[], bootm_headers_t *images)
     defined (CONFIG_SERIAL_TAG) || \
     defined (CONFIG_REVISION_TAG) || \
     defined (CONFIG_LCD) || \
-    defined (CONFIG_VFD)
+    defined (CONFIG_VFD) || \
+    defined (CONFIG_MAC_TAG)
 	setup_start_tag (bd);
 #ifdef CONFIG_SERIAL_TAG
 	setup_serial_tag (&params);
@@ -102,6 +109,9 @@ int do_bootm_linux(int flag, int argc, char *argv[], bootm_headers_t *images)
 #endif
 #ifdef CONFIG_CMDLINE_TAG
 	setup_commandline_tag (bd, commandline);
+#endif
+#ifdef CONFIG_MAC_TAG
+        setup_mac_tag (bd);
 #endif
 #ifdef CONFIG_INITRD_TAG
 	if (images->rd_start && images->rd_end)
@@ -254,6 +264,17 @@ void setup_serial_tag (struct tag **tmp)
 	*tmp = params;
 }
 #endif
+
+#ifdef CONFIG_MAC_TAG
+static void setup_mac_tag (bd_t *bd)
+{
+        params->hdr.tag = ATAG_MAC;
+        params->hdr.size = (sizeof (struct tag_header) + 6 + 4) >> 2;
+        memcpy(params->u.mac.mac_address, gd->bd->bi_enetaddr, 6);
+        params = tag_next (params);
+}
+#endif
+
 
 #ifdef CONFIG_REVISION_TAG
 void setup_revision_tag(struct tag **in_params)

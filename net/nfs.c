@@ -29,6 +29,10 @@
 #include "nfs.h"
 #include "bootp.h"
 
+#ifdef HAVE_COOLSTREAM_VFD_CONTROLLER
+#include <asm/arch/sys_proto.h>
+#endif
+
 /*#define NFS_DEBUG*/
 
 #if defined(CONFIG_CMD_NET) && defined(CONFIG_CMD_NFS)
@@ -737,6 +741,9 @@ NfsStart (void)
 	nfs_filename = basename (nfs_path);
 	nfs_path     = dirname (nfs_path);
 
+#ifdef HAVE_COOLSTREAM_VFD_CONTROLLER
+	display_set_text("NFS...    ");
+#endif
 #if defined(CONFIG_NET_MULTI)
 	printf ("Using %s device\n", eth_get_name());
 #endif
